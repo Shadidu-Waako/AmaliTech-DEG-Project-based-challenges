@@ -10,7 +10,7 @@ app = FastAPI(title="Idempotency Gateway")
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379")
 r = redis.Redis.from_url(REDIS_URL, decode_responses=True)
-# Uncomment for local testing
+# Uncomment the following lines for local testing
 # redis_host = os.getenv("REDIS_HOST", "redis")
 # r = redis.Redis(host=redis_host, port=6379, decode_responses=True)
 

@@ -6,6 +6,23 @@ This system guarantees that the same payment request with the same `Idempotency-
 
 ---
 
+
+# 🚀 Live Demo (Access Online)
+
+**You can access and test the API live at:**
+
+### Base URL
+https://amalitech-deg-project-based-challenges-3i1r.onrender.com
+
+
+### Interactive API Documentation (Swagger UI)
+https://amalitech-deg-project-based-challenges-3i1r.onrender.com/docs
+
+### Metrics Endpoint
+https://amalitech-deg-project-based-challenges-3i1r.onrender.com/docs
+
+---
+
 # Problem Statement
 
 Payment clients sometimes retry requests when networks lag.
