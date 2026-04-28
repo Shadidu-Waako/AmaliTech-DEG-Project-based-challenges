@@ -19,7 +19,7 @@ https://amalitech-deg-project-based-challenges-3i1r.onrender.com
 https://amalitech-deg-project-based-challenges-3i1r.onrender.com/docs
 
 ### Metrics Endpoint
-https://amalitech-deg-project-based-challenges-3i1r.onrender.com/docs
+https://amalitech-deg-project-based-challenges-3i1r.onrender.com/metrics
 
 ---
 
