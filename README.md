@@ -120,8 +120,6 @@ This is the easiest and production-like setup.
 
 ```bash
 git clone https://github.com/Shadidu-Waako/AmaliTech-DEG-Project-based-challenges
-cd backend
-cd Idempotency-gateway
 ```
 
 ## 2. Run Project
