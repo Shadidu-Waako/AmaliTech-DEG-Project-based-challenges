@@ -409,7 +409,7 @@ Benefits:
 curl -X POST http://localhost:8000/process-payment \
 -H "Content-Type: application/json" \
 -H "Idempotency-Key: pay001" \
--d '{"amount":100,"currency":"GHS"}'
+-d '{"amount":100,"currency":"UGX"}'
 ```
 
 Run the same command twice to test replay behavior.
