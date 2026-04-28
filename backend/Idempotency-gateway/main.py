@@ -11,6 +11,8 @@ app = FastAPI(title="Idempotency Gateway")
 redis_host = os.getenv("REDIS_HOST", "redis")
 r = redis.Redis(host=redis_host, port=6379, decode_responses=True)
 
+TTL_SECONDS = 86400
+
 
 class PaymentRequest(BaseModel):
     amount: int
@@ -49,29 +51,52 @@ def process_payment(
     if existing:
         data = json.loads(existing)
 
-        # Check if same body
         if data["hash"] != body_hash:
             raise HTTPException(
                 status_code=422,
                 detail="Idempotency key already used for a different request body."
             )
 
+        # If first request still processing, wait
+        if data["status"] == "processing":
+            while True:
+                current = json.loads(r.get(key))
+                if current["status"] == "completed":
+                    response.headers["X-Cache-Hit"] = "true"
+                    return current["response"]
+                time.sleep(0.1)
+
         response.headers["X-Cache-Hit"] = "true"
         return data["response"]
 
-    # Simulate processing
+    # Atomic lock creation
+    created = r.setnx(
+        key,
+        json.dumps({
+            "status": "processing",
+            "hash": body_hash
+        })
+    )
+
+    if not created:
+        return process_payment(request, response, idempotency_key)
+
+    r.expire(key, TTL_SECONDS)
+
+    # Simulate payment work
     time.sleep(2)
 
     result = {
         "message": f"Charged {request.amount} {request.currency}"
     }
 
-    save_data = {
+    final_data = {
+        "status": "completed",
         "hash": body_hash,
         "response": result
     }
 
-    r.setex(key, 86400, json.dumps(save_data))
+    r.set(key, json.dumps(final_data), ex=TTL_SECONDS)
 
     response.status_code = 201
     return result
