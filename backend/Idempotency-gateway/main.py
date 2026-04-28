@@ -13,6 +13,12 @@ r = redis.Redis(host=redis_host, port=6379, decode_responses=True)
 
 TTL_SECONDS = 86400
 
+metrics = {
+    "processed": 0,
+    "cache_hits": 0,
+    "conflicts": 0
+}
+
 
 class PaymentRequest(BaseModel):
     amount: int
@@ -27,6 +33,11 @@ def request_hash(payload: dict):
 @app.get("/")
 def home():
     return {"message": "API Running"}
+
+
+@app.get("/metrics")
+def get_metrics():
+    return metrics
 
 
 @app.post("/process-payment")
@@ -52,24 +63,25 @@ def process_payment(
         data = json.loads(existing)
 
         if data["hash"] != body_hash:
+            metrics["conflicts"] += 1
             raise HTTPException(
                 status_code=422,
                 detail="Idempotency key already used for a different request body."
             )
 
-        # If first request still processing, wait
         if data["status"] == "processing":
             while True:
                 current = json.loads(r.get(key))
                 if current["status"] == "completed":
+                    metrics["cache_hits"] += 1
                     response.headers["X-Cache-Hit"] = "true"
                     return current["response"]
                 time.sleep(0.1)
 
+        metrics["cache_hits"] += 1
         response.headers["X-Cache-Hit"] = "true"
         return data["response"]
 
-    # Atomic lock creation
     created = r.setnx(
         key,
         json.dumps({
@@ -83,7 +95,6 @@ def process_payment(
 
     r.expire(key, TTL_SECONDS)
 
-    # Simulate payment work
     time.sleep(2)
 
     result = {
@@ -97,6 +108,8 @@ def process_payment(
     }
 
     r.set(key, json.dumps(final_data), ex=TTL_SECONDS)
+
+    metrics["processed"] += 1
 
     response.status_code = 201
     return result
